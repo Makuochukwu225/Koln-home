@@ -15,6 +15,24 @@ export default function DeviceCard({ device, onRefresh }: DeviceCardProps) {
   const isOnline = Date.now() - new Date(device.lastSeen).getTime() < 45000;
 
   const handleCommand = async (pin: number, action: 'set' | 'toggle', value?: number) => {
+    // 1. Instant Direct LAN Execution (Sub-20ms)
+    if (device.localIp) {
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 600);
+        const lanUrl = action === 'toggle'
+          ? `http://${device.localIp}/toggle?pin=${pin}`
+          : `http://${device.localIp}/set?pin=${pin}&value=${value}`;
+
+        fetch(lanUrl, { method: 'GET', mode: 'cors', signal: controller.signal })
+          .catch(() => {})
+          .finally(() => clearTimeout(timeoutId));
+      } catch (e) {
+        // Direct LAN failed, will fallback to backend queue
+      }
+    }
+
+    // 2. Persist state to MongoDB in background
     try {
       await fetch(`/api/devices/${device.chipId}/command`, {
         method: 'POST',
@@ -84,6 +102,7 @@ export default function DeviceCard({ device, onRefresh }: DeviceCardProps) {
               <LoadControl
                 key={load.pin}
                 chipId={device.chipId}
+                localIp={device.localIp}
                 pin={load.pin}
                 type={load.type}
                 label={load.label}

@@ -86,6 +86,24 @@ export default function DeviceDetailPage({ params }: { params: Promise<{ chipId:
   };
 
   const handleCommand = async (pin: number, action: 'set' | 'toggle', value?: number) => {
+    // 1. Instant Direct LAN Execution (Sub-20ms)
+    if (device?.localIp) {
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 600);
+        const lanUrl = action === 'toggle'
+          ? `http://${device.localIp}/toggle?pin=${pin}`
+          : `http://${device.localIp}/set?pin=${pin}&value=${value}`;
+
+        fetch(lanUrl, { method: 'GET', mode: 'cors', signal: controller.signal })
+          .catch(() => {})
+          .finally(() => clearTimeout(timeoutId));
+      } catch (e) {
+        // Direct LAN failed, fallback to backend
+      }
+    }
+
+    // 2. Background backend persistence
     await fetch(`/api/devices/${chipId}/command`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -168,6 +186,7 @@ export default function DeviceDetailPage({ params }: { params: Promise<{ chipId:
               <LoadControl
                 key={load.pin}
                 chipId={device.chipId}
+                localIp={device.localIp}
                 pin={load.pin}
                 type={load.type}
                 label={load.label}

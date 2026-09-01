@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Lightbulb, Power, Gauge, Activity } from 'lucide-react';
 
 interface LoadControlProps {
   chipId: string;
+  localIp?: string;
   pin: number;
   type: string;
   label: string;
@@ -22,17 +23,21 @@ export default function LoadControl({
   const [state, setState] = useState(initialState);
   const [loading, setLoading] = useState(false);
 
+  useEffect(() => {
+    setState(initialState);
+  }, [initialState]);
+
   if (type === 'UNASSIGNED') return null;
 
   const handleToggle = async () => {
-    setLoading(true);
     const next = state > 0.5 ? 0 : 1;
-    setState(next);
+    setState(next); // Optimistic UI instant update
+    setLoading(true);
     await onCommand(pin, 'toggle', next);
     setLoading(false);
   };
 
-  const handleSliderChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSliderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = Number(e.target.value);
     setState(val);
   };
