@@ -6,10 +6,7 @@ export function getBackendUrl(): string {
   if (process.env.NEXT_PUBLIC_BACKEND_URL) {
     return process.env.NEXT_PUBLIC_BACKEND_URL;
   }
-  if (typeof window !== 'undefined' && window.location.hostname) {
-    return `http://${window.location.hostname}:5000`;
-  }
-  return 'http://localhost:5000';
+  return 'https://koln-api.jaxlabs.site';
 }
 
 export function getSocket(): Socket {
