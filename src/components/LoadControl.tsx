@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Lightbulb, Power, Gauge, Activity } from 'lucide-react';
 
 interface LoadControlProps {
@@ -22,27 +22,33 @@ export default function LoadControl({
 }: LoadControlProps) {
   const [state, setState] = useState(initialState);
   const [loading, setLoading] = useState(false);
+  const isDraggingRef = useRef(false);
 
+  // Sync state whenever external device updates MongoDB (unless currently dragging)
   useEffect(() => {
-    setState(initialState);
+    if (!isDraggingRef.current) {
+      setState(initialState);
+    }
   }, [initialState]);
 
   if (type === 'UNASSIGNED') return null;
 
   const handleToggle = async () => {
     const next = state > 0.5 ? 0 : 1;
-    setState(next); // Optimistic UI instant update
+    setState(next); // Immediate optimistic local UI update
     setLoading(true);
     await onCommand(pin, 'toggle', next);
     setLoading(false);
   };
 
   const handleSliderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    isDraggingRef.current = true;
     const val = Number(e.target.value);
     setState(val);
   };
 
   const handleSliderCommit = async () => {
+    isDraggingRef.current = false;
     await onCommand(pin, 'set', state);
   };
 

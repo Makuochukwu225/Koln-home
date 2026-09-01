@@ -26,7 +26,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     fetchDevices();
-    const interval = setInterval(fetchDevices, 5000); // Auto-refresh every 5s
+    const interval = setInterval(fetchDevices, 1500); // Auto-sync every 1.5s across all devices
     return () => clearInterval(interval);
   }, []);
 

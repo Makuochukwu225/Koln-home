@@ -51,8 +51,11 @@ export default function DeviceDetailPage({ params }: { params: Promise<{ chipId:
     }
   };
 
+  // Live Auto-Sync polling across all open dashboards (phones, laptops, tabs) every 1.5s
   useEffect(() => {
     fetchDevice();
+    const interval = setInterval(fetchDevice, 1500);
+    return () => clearInterval(interval);
   }, [chipId]);
 
   useEffect(() => {
@@ -63,7 +66,7 @@ export default function DeviceDetailPage({ params }: { params: Promise<{ chipId:
         }
       });
     }
-  }, [device]);
+  }, [device?.lastSeen]);
 
   const handleUpdateLoad = async (pin: number, type: string, label: string) => {
     setSavingPin(pin);
