@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { Cpu, RefreshCw, Zap, Search } from 'lucide-react';
 import DeviceCard from '@/components/DeviceCard';
+import { useDeviceSocket } from '@/hooks/useDeviceSocket';
 
 export default function DashboardPage() {
   const [devices, setDevices] = useState<any[]>([]);
@@ -24,9 +25,24 @@ export default function DashboardPage() {
     }
   };
 
+  // Instant real-time WebSocket state update
+  const handleDeviceSocketUpdate = useCallback((updatedDevice: any) => {
+    setDevices((prev) => {
+      const index = prev.findIndex((d) => d.chipId === updatedDevice.chipId);
+      if (index === -1) {
+        return [updatedDevice, ...prev];
+      }
+      const clone = [...prev];
+      clone[index] = updatedDevice;
+      return clone;
+    });
+  }, []);
+
+  useDeviceSocket(handleDeviceSocketUpdate);
+
   useEffect(() => {
     fetchDevices();
-    const interval = setInterval(fetchDevices, 1500); // Auto-sync every 1.5s across all devices
+    const interval = setInterval(fetchDevices, 3000); // Background fallback sync
     return () => clearInterval(interval);
   }, []);
 

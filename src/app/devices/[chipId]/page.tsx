@@ -1,10 +1,12 @@
 'use client';
 
-import React, { useEffect, useState, use } from 'react';
+import React, { useEffect, useState, useCallback, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Save, Trash2, Cpu, Globe, Activity, Check } from 'lucide-react';
 import LoadControl from '@/components/LoadControl';
 import SensorChart from '@/components/SensorChart';
+import { useDeviceSocket } from '@/hooks/useDeviceSocket';
+import { getSocket } from '@/lib/socket';
 
 const LOAD_TYPES = [
   { value: 'UNASSIGNED', label: 'Unassigned (Disabled)' },
@@ -51,10 +53,42 @@ export default function DeviceDetailPage({ params }: { params: Promise<{ chipId:
     }
   };
 
-  // Live Auto-Sync polling across all open dashboards (phones, laptops, tabs) every 1.5s
+  // Instant real-time WebSocket state update
+  const handleSocketUpdate = useCallback(
+    (updatedDevice: any) => {
+      if (updatedDevice.chipId === chipId) {
+        setDevice(updatedDevice);
+      }
+    },
+    [chipId]
+  );
+
+  const { sendCommand } = useDeviceSocket(handleSocketUpdate);
+
+  // Live WebSocket sensor readings listener
+  useEffect(() => {
+    const socket = getSocket();
+    const handleTelemetryNew = (reading: any) => {
+      if (reading.deviceChipId === chipId) {
+        setTelemetry((prev) => {
+          const existing = prev[reading.pin] || [];
+          return {
+            ...prev,
+            [reading.pin]: [...existing.slice(-29), reading],
+          };
+        });
+      }
+    };
+
+    socket.on('telemetry:new', handleTelemetryNew);
+    return () => {
+      socket.off('telemetry:new', handleTelemetryNew);
+    };
+  }, [chipId]);
+
   useEffect(() => {
     fetchDevice();
-    const interval = setInterval(fetchDevice, 1500);
+    const interval = setInterval(fetchDevice, 3000); // Background fallback sync
     return () => clearInterval(interval);
   }, [chipId]);
 
@@ -89,30 +123,7 @@ export default function DeviceDetailPage({ params }: { params: Promise<{ chipId:
   };
 
   const handleCommand = async (pin: number, action: 'set' | 'toggle', value?: number) => {
-    // 1. Instant Direct LAN Execution (Sub-20ms)
-    if (device?.localIp) {
-      try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 600);
-        const lanUrl = action === 'toggle'
-          ? `http://${device.localIp}/toggle?pin=${pin}`
-          : `http://${device.localIp}/set?pin=${pin}&value=${value}`;
-
-        fetch(lanUrl, { method: 'GET', mode: 'cors', signal: controller.signal })
-          .catch(() => {})
-          .finally(() => clearTimeout(timeoutId));
-      } catch (e) {
-        // Direct LAN failed, fallback to backend
-      }
-    }
-
-    // 2. Background backend persistence
-    await fetch(`/api/devices/${chipId}/command`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ pin, action, value }),
-    });
-    fetchDevice();
+    await sendCommand(chipId, pin, action, value, device?.localIp);
   };
 
   const handleDeleteDevice = async () => {

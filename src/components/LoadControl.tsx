@@ -22,11 +22,11 @@ export default function LoadControl({
 }: LoadControlProps) {
   const [state, setState] = useState(initialState);
   const [loading, setLoading] = useState(false);
-  const isDraggingRef = useRef(false);
+  const isInteractingRef = useRef(false);
 
-  // Sync state whenever external device updates MongoDB (unless currently dragging)
+  // Sync state whenever external device updates MongoDB (unless currently interacting)
   useEffect(() => {
-    if (!isDraggingRef.current) {
+    if (!isInteractingRef.current) {
       setState(initialState);
     }
   }, [initialState]);
@@ -34,22 +34,34 @@ export default function LoadControl({
   if (type === 'UNASSIGNED') return null;
 
   const handleToggle = async () => {
+    if (loading) return;
     const next = state > 0.5 ? 0 : 1;
-    setState(next); // Immediate optimistic local UI update
+    isInteractingRef.current = true;
+    setState(next); // Immediate optimistic UI update
     setLoading(true);
-    await onCommand(pin, 'toggle', next);
-    setLoading(false);
+
+    try {
+      // Send explicit idempotent 'set' with 1 or 0 to eliminate toggle race conditions
+      await onCommand(pin, 'set', next);
+    } finally {
+      setTimeout(() => {
+        isInteractingRef.current = false;
+        setLoading(false);
+      }, 300);
+    }
   };
 
   const handleSliderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    isDraggingRef.current = true;
+    isInteractingRef.current = true;
     const val = Number(e.target.value);
     setState(val);
   };
 
   const handleSliderCommit = async () => {
-    isDraggingRef.current = false;
     await onCommand(pin, 'set', state);
+    setTimeout(() => {
+      isInteractingRef.current = false;
+    }, 300);
   };
 
   return (
@@ -72,13 +84,13 @@ export default function LoadControl({
           <button
             onClick={handleToggle}
             disabled={loading}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all active:scale-95 ${
               state > 0.5
                 ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 shadow-sm shadow-emerald-900/40'
                 : 'bg-surfaceHover text-gray-400 border border-border hover:bg-gray-800'
             }`}
           >
-            <Power className="w-3.5 h-3.5" />
+            <Power className={`w-3.5 h-3.5 ${loading ? 'animate-spin opacity-50' : ''}`} />
             <span>{state > 0.5 ? 'ON' : 'OFF'}</span>
           </button>
         )}

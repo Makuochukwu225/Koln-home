@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { Cpu, Settings, Wifi, WifiOff } from 'lucide-react';
 import LoadControl from './LoadControl';
+import { useDeviceSocket } from '@/hooks/useDeviceSocket';
 
 interface DeviceCardProps {
   device: any;
@@ -11,35 +12,14 @@ interface DeviceCardProps {
 }
 
 export default function DeviceCard({ device, onRefresh }: DeviceCardProps) {
+  const { sendCommand } = useDeviceSocket();
+
   // Device is considered online if seen in the last 45 seconds
   const isOnline = Date.now() - new Date(device.lastSeen).getTime() < 45000;
 
   const handleCommand = async (pin: number, action: 'set' | 'toggle', value?: number) => {
-    // 1. Instant Direct LAN Execution (Sub-20ms)
-    if (device.localIp) {
-      try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 600);
-        const lanUrl = action === 'toggle'
-          ? `http://${device.localIp}/toggle?pin=${pin}`
-          : `http://${device.localIp}/set?pin=${pin}&value=${value}`;
-
-        fetch(lanUrl, { method: 'GET', mode: 'cors', signal: controller.signal })
-          .catch(() => {})
-          .finally(() => clearTimeout(timeoutId));
-      } catch (e) {
-        // Direct LAN failed, will fallback to backend queue
-      }
-    }
-
-    // 2. Persist state to MongoDB in background
     try {
-      await fetch(`/api/devices/${device.chipId}/command`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ pin, action, value }),
-      });
-      onRefresh();
+      await sendCommand(device.chipId, pin, action, value, device.localIp);
     } catch (err) {
       console.error('Command dispatch error:', err);
     }
