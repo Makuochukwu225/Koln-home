@@ -7,6 +7,7 @@ import LoadControl from '@/components/LoadControl';
 import SensorChart from '@/components/SensorChart';
 import { useDeviceSocket } from '@/hooks/useDeviceSocket';
 import { getSocket } from '@/lib/socket';
+import { apiFetch } from '@/lib/api';
 
 const LOAD_TYPES = [
   { value: 'UNASSIGNED', label: 'Unassigned (Disabled)' },
@@ -29,8 +30,7 @@ export default function DeviceDetailPage({ params }: { params: Promise<{ chipId:
 
   const fetchDevice = async () => {
     try {
-      const res = await fetch(`/api/devices/${chipId}`);
-      const data = await res.json();
+      const data = await apiFetch(`/api/devices/${chipId}`);
       if (data.success) {
         setDevice(data.device);
       }
@@ -43,8 +43,7 @@ export default function DeviceDetailPage({ params }: { params: Promise<{ chipId:
 
   const fetchTelemetry = async (pin: number) => {
     try {
-      const res = await fetch(`/api/devices/${chipId}/telemetry?pin=${pin}&limit=30`);
-      const data = await res.json();
+      const data = await apiFetch(`/api/devices/${chipId}/telemetry?pin=${pin}&limit=30`);
       if (data.success) {
         setTelemetry((prev) => ({ ...prev, [pin]: data.telemetry }));
       }
@@ -105,12 +104,11 @@ export default function DeviceDetailPage({ params }: { params: Promise<{ chipId:
   const handleUpdateLoad = async (pin: number, type: string, label: string) => {
     setSavingPin(pin);
     try {
-      const res = await fetch(`/api/devices/${chipId}/loads/${pin}`, {
+      const data = await apiFetch(`/api/devices/${chipId}/loads/${pin}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ type, label }),
       });
-      if (res.ok) {
+      if (data.success) {
         setSavedPin(pin);
         setTimeout(() => setSavedPin(null), 2000);
         fetchDevice();
@@ -128,7 +126,7 @@ export default function DeviceDetailPage({ params }: { params: Promise<{ chipId:
 
   const handleDeleteDevice = async () => {
     if (!confirm('Are you sure you want to delete this device and all its history?')) return;
-    await fetch(`/api/devices/${chipId}`, { method: 'DELETE' });
+    await apiFetch(`/api/devices/${chipId}`, { method: 'DELETE' });
     router.push('/');
   };
 

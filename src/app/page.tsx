@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Cpu, RefreshCw, Zap, Search } from 'lucide-react';
 import DeviceCard from '@/components/DeviceCard';
 import { useDeviceSocket } from '@/hooks/useDeviceSocket';
+import { apiFetch } from '@/lib/api';
 
 export default function DashboardPage() {
   const [devices, setDevices] = useState<any[]>([]);
@@ -13,8 +14,7 @@ export default function DashboardPage() {
 
   const fetchDevices = async () => {
     try {
-      const res = await fetch('/api/devices');
-      const data = await res.json();
+      const data = await apiFetch('/api/devices');
       if (data.success) {
         setDevices(data.devices);
       }
