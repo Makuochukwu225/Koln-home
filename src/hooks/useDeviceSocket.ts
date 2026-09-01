@@ -36,8 +36,9 @@ export function useDeviceSocket(onDeviceUpdate?: (device: any) => void) {
 
   const sendCommand = useCallback(
     async (chipId: string, pin: number, action: 'set' | 'toggle', value?: number, localIp?: string) => {
-      // 1. Instant Direct LAN Execution (if on same local network, ~10ms)
-      if (localIp) {
+      // 1. Instant Direct LAN Execution (only when running on unencrypted HTTP)
+      const isHttps = typeof window !== 'undefined' && window.location.protocol === 'https:';
+      if (localIp && !isHttps) {
         try {
           const controller = new AbortController();
           const timeoutId = setTimeout(() => controller.abort(), 600);
