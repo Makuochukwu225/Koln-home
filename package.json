@@ -1,6 +1,6 @@
 {
-  "name": "koln-home",
-  "version": "1.0.0",
+  "name": "web",
+  "version": "0.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -9,13 +9,10 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "esptool-js": "^0.4.4",
     "lucide-react": "^0.378.0",
-    "mongoose": "^8.3.1",
     "next": "^16.3.4",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "socket.io-client": "^4.8.3"
+    "react-dom": "^18.3.1"
   },
   "devDependencies": {
     "@types/node": "^20.12.7",
