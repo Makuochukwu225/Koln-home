@@ -29,7 +29,7 @@ export default function Home() {
   const [backendUrl, setBackendUrl] = useState('ws://localhost:5000');
   const [isConnected, setIsConnected] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
-  
+
   // Independent States
   const [count, setCount] = useState<number | null>(null);
   const [pin4State, setPin4State] = useState<boolean>(false);
@@ -228,22 +228,20 @@ export default function Home() {
           {/* Connection Status Badge */}
           <div className="flex items-center gap-2">
             <div
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all duration-200 ${
-                isConnected
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all duration-200 ${isConnected
                   ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
                   : isConnecting
-                  ? 'bg-amber-500/10 text-amber-400 border-amber-500/30 animate-pulse'
-                  : 'bg-rose-500/10 text-rose-400 border-rose-500/30'
-              }`}
+                    ? 'bg-amber-500/10 text-amber-400 border-amber-500/30 animate-pulse'
+                    : 'bg-rose-500/10 text-rose-400 border-rose-500/30'
+                }`}
             >
               <span
-                className={`w-2 h-2 rounded-full ${
-                  isConnected
+                className={`w-2 h-2 rounded-full ${isConnected
                     ? 'bg-emerald-400 shadow-sm shadow-emerald-400'
                     : isConnecting
-                    ? 'bg-amber-400'
-                    : 'bg-rose-400'
-                }`}
+                      ? 'bg-amber-400'
+                      : 'bg-rose-400'
+                  }`}
               />
               {isConnected ? 'Live Connected' : isConnecting ? 'Connecting...' : 'Disconnected'}
             </div>
@@ -261,22 +259,22 @@ export default function Home() {
           </div>
         </header>
 
+
+
         {/* PIN 4 OUTPUT SWITCH CARD */}
         <section
-          className={`border rounded-3xl p-5 sm:p-6 shadow-2xl transition-all duration-300 relative overflow-hidden ${
-            pin4State
+          className={`border rounded-3xl p-5 sm:p-6 shadow-2xl transition-all duration-300 relative overflow-hidden ${pin4State
               ? 'bg-gradient-to-b from-slate-900 via-amber-950/20 to-slate-900 border-amber-500/40 shadow-amber-500/10'
               : 'bg-slate-900/90 border-slate-800/80 shadow-black/40'
-          }`}
+            }`}
         >
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-3.5">
               <div
-                className={`p-3 rounded-2xl border transition-all duration-300 ${
-                  pin4State
+                className={`p-3 rounded-2xl border transition-all duration-300 ${pin4State
                     ? 'bg-amber-500/20 border-amber-500/50 text-amber-400 shadow-lg shadow-amber-500/30 scale-105'
                     : 'bg-slate-800 border-slate-700 text-slate-500 scale-100'
-                }`}
+                  }`}
               >
                 <Zap className="w-6 h-6" />
               </div>
@@ -284,11 +282,10 @@ export default function Home() {
                 <div className="flex items-center gap-2">
                   <h2 className="text-base sm:text-lg font-bold text-white tracking-tight">Pin 4 LED Switch</h2>
                   <span
-                    className={`text-[10px] font-black tracking-wider uppercase px-2.5 py-0.5 rounded-full border transition-all duration-200 ${
-                      pin4State
+                    className={`text-[10px] font-black tracking-wider uppercase px-2.5 py-0.5 rounded-full border transition-all duration-200 ${pin4State
                         ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
                         : 'bg-slate-800 text-slate-400 border-slate-700'
-                    }`}
+                      }`}
                   >
                     GPIO 4: {pin4State ? `ON (${sliderValue}%)` : 'OFF (0%)'}
                   </span>
@@ -305,18 +302,15 @@ export default function Home() {
               role="switch"
               aria-checked={pin4State}
               onClick={togglePin4}
-              className={`relative inline-flex h-10 w-20 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none active:scale-95 ${
-                !isConnected ? 'opacity-50 cursor-not-allowed' : ''
-              } ${
-                pin4State ? 'bg-amber-500 shadow-lg shadow-amber-500/30' : 'bg-slate-800 border-slate-700'
-              }`}
+              className={`relative inline-flex h-10 w-20 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none active:scale-95 ${!isConnected ? 'opacity-50 cursor-not-allowed' : ''
+                } ${pin4State ? 'bg-amber-500 shadow-lg shadow-amber-500/30' : 'bg-slate-800 border-slate-700'
+                }`}
             >
               <span className="sr-only">Toggle Pin 4</span>
               <span
                 aria-hidden="true"
-                className={`pointer-events-none inline-flex h-8 w-8 transform items-center justify-center rounded-full bg-white shadow-md ring-0 transition duration-200 ease-out ${
-                  pin4State ? 'translate-x-10 text-amber-600' : 'translate-x-1 text-slate-400'
-                }`}
+                className={`pointer-events-none inline-flex h-8 w-8 transform items-center justify-center rounded-full bg-white shadow-md ring-0 transition duration-200 ease-out ${pin4State ? 'translate-x-10 text-amber-600' : 'translate-x-1 text-slate-400'
+                  }`}
               >
                 <Power className="w-3.5 h-3.5" />
               </span>
@@ -328,26 +322,22 @@ export default function Home() {
             <button
               type="button"
               onClick={() => setPin4(true)}
-              className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold transition-all duration-150 active:scale-95 border cursor-pointer ${
-                !isConnected ? 'opacity-50 cursor-not-allowed' : ''
-              } ${
-                pin4State
+              className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold transition-all duration-150 active:scale-95 border cursor-pointer ${!isConnected ? 'opacity-50 cursor-not-allowed' : ''
+                } ${pin4State
                   ? 'bg-amber-500 text-slate-950 font-black border-amber-400 shadow-md shadow-amber-500/20'
                   : 'bg-slate-800/80 hover:bg-slate-700 text-slate-300 border-slate-700'
-              }`}
+                }`}
             >
               Turn ON
             </button>
             <button
               type="button"
               onClick={() => setPin4(false)}
-              className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold transition-all duration-150 active:scale-95 border cursor-pointer ${
-                !isConnected ? 'opacity-50 cursor-not-allowed' : ''
-              } ${
-                !pin4State
+              className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold transition-all duration-150 active:scale-95 border cursor-pointer ${!isConnected ? 'opacity-50 cursor-not-allowed' : ''
+                } ${!pin4State
                   ? 'bg-slate-800 text-white border-slate-600 shadow-sm'
                   : 'bg-slate-900/60 hover:bg-slate-800 text-slate-400 border-slate-800'
-              }`}
+                }`}
             >
               Turn OFF
             </button>
@@ -386,9 +376,8 @@ export default function Home() {
                 onChange={(e) => handleSliderChange(Number(e.target.value))}
                 onMouseUp={() => handleSliderChange(sliderValue, true)}
                 onTouchEnd={() => handleSliderChange(sliderValue, true)}
-                className={`w-full h-3 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-amber-400 focus:outline-none ${
-                  !isConnected ? 'opacity-50 cursor-not-allowed' : ''
-                }`}
+                className={`w-full h-3 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-amber-400 focus:outline-none ${!isConnected ? 'opacity-50 cursor-not-allowed' : ''
+                  }`}
               />
             </div>
 
@@ -399,13 +388,11 @@ export default function Home() {
                   key={val}
                   type="button"
                   onClick={() => handleSliderChange(val, true)}
-                  className={`flex-1 py-1 px-2 rounded-lg text-xs font-semibold font-mono border transition-all active:scale-95 cursor-pointer ${
-                    !isConnected ? 'opacity-50 cursor-not-allowed' : ''
-                  } ${
-                    sliderValue === val
+                  className={`flex-1 py-1 px-2 rounded-lg text-xs font-semibold font-mono border transition-all active:scale-95 cursor-pointer ${!isConnected ? 'opacity-50 cursor-not-allowed' : ''
+                    } ${sliderValue === val
                       ? 'bg-amber-500 text-slate-950 border-amber-400 font-black shadow-sm shadow-amber-500/20'
                       : 'bg-slate-800/80 hover:bg-slate-700 text-slate-300 border-slate-700/80'
-                  }`}
+                    }`}
                 >
                   {val}%
                 </button>
@@ -417,9 +404,8 @@ export default function Home() {
         {/* UNINTERRUPTED LIVE COUNTER CARD */}
         <section className="bg-slate-900/90 border border-slate-800/80 rounded-3xl p-6 sm:p-8 text-center relative overflow-hidden shadow-2xl">
           <div
-            className={`absolute inset-0 bg-sky-500/10 blur-3xl transition-opacity duration-300 pointer-events-none ${
-              isPulsing ? 'opacity-90' : 'opacity-20'
-            }`}
+            className={`absolute inset-0 bg-sky-500/10 blur-3xl transition-opacity duration-300 pointer-events-none ${isPulsing ? 'opacity-90' : 'opacity-20'
+              }`}
           />
 
           <span className="text-[11px] font-bold uppercase tracking-widest text-sky-400 bg-sky-500/10 px-3 py-1 rounded-full border border-sky-500/20">
@@ -428,9 +414,8 @@ export default function Home() {
 
           <div className="my-5">
             <span
-              className={`text-7xl sm:text-8xl font-black tracking-tight text-white transition-all duration-150 inline-block ${
-                isPulsing ? 'scale-105 text-sky-300 drop-shadow-[0_0_25px_rgba(56,189,248,0.4)]' : 'scale-100'
-              }`}
+              className={`text-7xl sm:text-8xl font-black tracking-tight text-white transition-all duration-150 inline-block ${isPulsing ? 'scale-105 text-sky-300 drop-shadow-[0_0_25px_rgba(56,189,248,0.4)]' : 'scale-100'
+                }`}
             >
               {count !== null ? count : '--'}
             </span>
