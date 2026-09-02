@@ -6,12 +6,23 @@ export function getBackendUrl(): string {
   if (process.env.NEXT_PUBLIC_BACKEND_URL) {
     return process.env.NEXT_PUBLIC_BACKEND_URL;
   }
-  return 'https://koln-api.jaxlabs.site';
+  if (typeof window !== 'undefined') {
+    const hostname = window.location.hostname;
+    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+      return `http://${hostname}:5000`;
+    }
+  }
+  return process.env.NODE_ENV === 'development'
+    ? 'http://localhost:5000'
+    : 'https://koln-api.jaxlabs.site';
 }
 
 export function getSocket(): Socket {
-  if (!socket) {
-    const backendUrl = getBackendUrl();
+  const backendUrl = getBackendUrl();
+  if (!socket || (socket as any).io?.uri !== backendUrl) {
+    if (socket) {
+      socket.disconnect();
+    }
     socket = io(backendUrl, {
       autoConnect: true,
       reconnection: true,

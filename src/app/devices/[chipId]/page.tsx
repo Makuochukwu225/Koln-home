@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useCallback, use } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Save, Trash2, Cpu, Globe, Activity, Check } from 'lucide-react';
+import { ArrowLeft, Save, Trash2, Cpu, Globe, Activity, Check, RotateCcw, AlertTriangle } from 'lucide-react';
 import LoadControl from '@/components/LoadControl';
 import SensorChart from '@/components/SensorChart';
 import { useDeviceSocket } from '@/hooks/useDeviceSocket';
@@ -27,6 +27,8 @@ export default function DeviceDetailPage({ params }: { params: Promise<{ chipId:
   const [loading, setLoading] = useState(true);
   const [savingPin, setSavingPin] = useState<number | null>(null);
   const [savedPin, setSavedPin] = useState<number | null>(null);
+  const [resetting, setResetting] = useState(false);
+  const [resetStatusMessage, setResetStatusMessage] = useState<string | null>(null);
 
   const fetchDevice = async () => {
     try {
@@ -128,6 +130,32 @@ export default function DeviceDetailPage({ params }: { params: Promise<{ chipId:
     if (!confirm('Are you sure you want to delete this device and all its history?')) return;
     await apiFetch(`/api/devices/${chipId}`, { method: 'DELETE' });
     router.push('/');
+  };
+
+  const handleResetDevice = async () => {
+    if (
+      !confirm(
+        'WARNING: Factory resetting this device will erase its saved Wi-Fi credentials and Backend URL. The ESP32 will reboot into Setup Mode (ESP32-Setup-XXXX).\n\nDo you want to proceed?'
+      )
+    ) {
+      return;
+    }
+
+    setResetting(true);
+    try {
+      const data = await apiFetch(`/api/devices/${chipId}/reset`, { method: 'POST' });
+      if (data.success) {
+        setResetStatusMessage(
+          'Factory reset command sent! The device is clearing flash memory and rebooting into Captive Portal mode (ESP32-Setup-XXXX).'
+        );
+      } else {
+        alert(data.error || 'Failed to dispatch reset command');
+      }
+    } catch (err: any) {
+      alert(err.message || 'Error executing reset request');
+    } finally {
+      setResetting(false);
+    }
   };
 
   if (loading || !device) {
@@ -257,20 +285,48 @@ export default function DeviceDetailPage({ params }: { params: Promise<{ chipId:
       </section>
 
       {/* Danger Zone */}
-      <div className="p-6 bg-rose-500/5 rounded-2xl border border-rose-500/20 flex items-center justify-between">
-        <div>
-          <h3 className="text-sm font-bold text-rose-400">Remove Device</h3>
-          <p className="text-xs text-gray-400 mt-0.5">
-            Delete this device record and purge all historic telemetry from the database.
-          </p>
+      <div className="p-6 bg-rose-500/5 rounded-2xl border border-rose-500/20 space-y-4">
+        {resetStatusMessage && (
+          <div className="p-4 bg-amber-500/10 border border-amber-500/30 rounded-xl text-xs text-amber-300 flex items-start gap-3">
+            <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+            <span>{resetStatusMessage}</span>
+          </div>
+        )}
+
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h3 className="text-sm font-bold text-amber-400">Reconfigure / Remote Factory Reset</h3>
+            <p className="text-xs text-gray-400 mt-0.5">
+              Wipe Wi-Fi credentials & Backend URL from ESP32 flash memory and reboot into Setup Mode (<code className="text-amber-300">ESP32-Setup-XXXX</code>).
+            </p>
+          </div>
+          <button
+            onClick={handleResetDevice}
+            disabled={resetting}
+            className="flex items-center gap-2 px-4 py-2 bg-amber-600/20 hover:bg-amber-600 border border-amber-500/40 text-amber-300 hover:text-white rounded-xl text-xs font-semibold transition shrink-0"
+          >
+            <RotateCcw className={`w-4 h-4 ${resetting ? 'animate-spin' : ''}`} />
+            <span>{resetting ? 'Resetting...' : 'Reset & Re-provision'}</span>
+          </button>
         </div>
-        <button
-          onClick={handleDeleteDevice}
-          className="flex items-center gap-2 px-4 py-2 bg-rose-600/20 hover:bg-rose-600 border border-rose-500/40 text-rose-300 hover:text-white rounded-xl text-xs font-semibold transition"
-        >
-          <Trash2 className="w-4 h-4" />
-          <span>Delete Device</span>
-        </button>
+
+        <hr className="border-rose-500/20" />
+
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h3 className="text-sm font-bold text-rose-400">Remove Device</h3>
+            <p className="text-xs text-gray-400 mt-0.5">
+              Delete this device record and purge all historic telemetry from the database.
+            </p>
+          </div>
+          <button
+            onClick={handleDeleteDevice}
+            className="flex items-center gap-2 px-4 py-2 bg-rose-600/20 hover:bg-rose-600 border border-rose-500/40 text-rose-300 hover:text-white rounded-xl text-xs font-semibold transition shrink-0"
+          >
+            <Trash2 className="w-4 h-4" />
+            <span>Delete Device</span>
+          </button>
+        </div>
       </div>
     </div>
   );
