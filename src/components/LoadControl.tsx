@@ -51,10 +51,18 @@ export default function LoadControl({
     }
   };
 
+  const lastSliderSentRef = useRef<number>(0);
+
   const handleSliderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     isInteractingRef.current = true;
     const val = Number(e.target.value);
     setState(val);
+
+    const now = Date.now();
+    if (now - lastSliderSentRef.current > 50) {
+      lastSliderSentRef.current = now;
+      onCommand(pin, 'set', val);
+    }
   };
 
   const handleSliderCommit = async () => {

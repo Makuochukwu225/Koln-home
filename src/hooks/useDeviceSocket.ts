@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { getSocket } from '@/lib/socket';
+import { apiFetch } from '@/lib/api';
 
 export function useDeviceSocket(onDeviceUpdate?: (device: any) => void) {
   const [isConnected, setIsConnected] = useState(false);
@@ -22,6 +23,7 @@ export function useDeviceSocket(onDeviceUpdate?: (device: any) => void) {
     if (onDeviceUpdate) {
       socket.on('device:updated', onDeviceUpdate);
       socket.on('device:registered', onDeviceUpdate);
+      socket.on('device:state', onDeviceUpdate);
     }
 
     return () => {
@@ -30,6 +32,7 @@ export function useDeviceSocket(onDeviceUpdate?: (device: any) => void) {
       if (onDeviceUpdate) {
         socket.off('device:updated', onDeviceUpdate);
         socket.off('device:registered', onDeviceUpdate);
+        socket.off('device:state', onDeviceUpdate);
       }
     };
   }, [onDeviceUpdate]);
@@ -62,10 +65,9 @@ export function useDeviceSocket(onDeviceUpdate?: (device: any) => void) {
         return;
       }
 
-      // 3. Fallback to standard HTTP POST if WebSocket is disconnected
-      await fetch(`/api/devices/${chipId}/command`, {
+      // 3. Fallback to direct backend REST API if WebSocket is disconnected
+      await apiFetch(`/api/devices/${chipId}/command`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ pin, action, value }),
       });
     },

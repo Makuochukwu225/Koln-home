@@ -1,8 +1,7 @@
-const CACHE_NAME = 'kolnhome-shell-v1';
+const CACHE_NAME = 'kolnhome-shell-v2';
 const APP_SHELL_ASSETS = [
   '/',
-  '/manifest.json',
-  '/globals.css'
+  '/manifest.json'
 ];
 
 self.addEventListener('install', (event) => {

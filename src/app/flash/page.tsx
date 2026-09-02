@@ -20,6 +20,9 @@ import {
   Check,
 } from 'lucide-react';
 
+import { apiFetch } from '@/lib/api';
+import { getBackendUrl } from '@/lib/socket';
+
 interface FirmwareItem {
   filename: string;
   size: number;
@@ -59,8 +62,7 @@ export default function FlashPage() {
   const fetchFirmwareList = async () => {
     setLoadingFirmware(true);
     try {
-      const res = await fetch('/api/firmware');
-      const data = await res.json();
+      const data = await apiFetch('/api/firmware');
       if (data.success && data.firmware) {
         setFirmwareList(data.firmware);
         // If current selected firmware is no longer in list, default to first item
@@ -104,10 +106,9 @@ export default function FlashPage() {
     setUploadSuccess(null);
 
     try {
-      const res = await fetch(`/api/firmware?filename=${encodeURIComponent(filename)}`, {
+      const data = await apiFetch(`/api/firmware?filename=${encodeURIComponent(filename)}`, {
         method: 'DELETE',
       });
-      const data = await res.json();
       if (!data.success) {
         throw new Error(data.error || 'Failed to delete firmware file.');
       }
@@ -166,12 +167,11 @@ export default function FlashPage() {
         formData.append('saveAsDefault', 'true');
       }
 
-      const res = await fetch('/api/firmware/upload', {
+      const data = await apiFetch('/api/firmware/upload', {
         method: 'POST',
         body: formData,
       });
 
-      const data = await res.json();
       if (!data.success) {
         throw new Error(data.error || 'Failed to upload firmware file to server.');
       }
@@ -225,7 +225,8 @@ export default function FlashPage() {
       let arrayBuffer: ArrayBuffer;
 
       if (firmwareSource === 'bundled') {
-        const targetUrl = `/firmware/${selectedServerFirmware}`;
+        const backendUrl = getBackendUrl();
+        const targetUrl = `${backendUrl}/firmware/${selectedServerFirmware}`;
         appendLog(`[ESPLoader] Fetching firmware binary from ${targetUrl}...`);
         const response = await fetch(targetUrl);
         if (!response.ok) {

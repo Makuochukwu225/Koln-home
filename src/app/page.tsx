@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Cpu, RefreshCw, Zap, Search } from 'lucide-react';
 import DeviceCard from '@/components/DeviceCard';
 import { useDeviceSocket } from '@/hooks/useDeviceSocket';
+import { getSocket } from '@/lib/socket';
 import { apiFetch } from '@/lib/api';
 
 export default function DashboardPage() {
@@ -39,6 +40,18 @@ export default function DashboardPage() {
   }, []);
 
   useDeviceSocket(handleDeviceSocketUpdate);
+
+  useEffect(() => {
+    const socket = getSocket();
+    const handleDeviceDeleted = ({ chipId }: { chipId: string }) => {
+      setDevices((prev) => prev.filter((d) => d.chipId !== chipId));
+    };
+
+    socket.on('device:deleted', handleDeviceDeleted);
+    return () => {
+      socket.off('device:deleted', handleDeviceDeleted);
+    };
+  }, []);
 
   useEffect(() => {
     fetchDevices();
